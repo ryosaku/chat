@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>Chat</title>
+		<link rel="stylesheet" 
+			href="https://icode.run/bootstrap/css/bootstrap.min.css" />
+		<style>
+			form {
+				padding: 10px;
+			}
+			textarea {
+				margin-bottom: 10px;
+			}
+		</style>
+	</head>
+	<body>
+		<form action="javascript:send()">
+			<textarea class="form-control" rows="5"></textarea>
+			<div class="input-group">
+				<input class="form-control" id="message" />
+				<span class="input-group-btn">
+					<button class="btn btn-primary" type="submit"
+					>Send</button>
+				</span>
+			</div>
+		</form>
+
+		<script src="https://icode.run/jquery.js"></script>
+		<script src="https://icode.run/bootstrap/js/bootstrap.min.js"></script>
+
+		<script src="/socket.io/socket.io.js"></script>
+		<script>
+			var socket = io.connect("/");
+			socket.on("message", m => {
+				var t = $("textarea").val();
+				$("textarea").val(t + m + "\n");
+			});
+			function send() {
+				var m = $("#message").val();
+				$("#message").val("");
+				if (m == "@position") {
+					navigator.geolocation.getCurrentPosition
+						(showPosition, showPositionError, {
+							enableHighAccuracy: true
+						});
+				} else {
+					socket.send(m);
+				}
+			}
+			$(main);
+			function main() {
+				$("#message").keydown(start);
+				$("#message").keyup(stop);
+			}
+			var KEY = 16; // Shift Key
+			var sr = new webkitSpeechRecognition();
+			sr.lang = "th";
+			sr.onresult = function(e) {
+				$('#message').val(e.results[0][0].transcript);
+				send();
+			}
+			function start(e) {
+				if (e.which == KEY) {
+					sr.start();
+				}
+			}
+			function stop(e) {
+				if (e.which == KEY) {
+					sr.stop();
+				}
+			}
+			function showPosition(p) {
+				var lat = p.coords.latitude;
+				var lng = p.coords.longitude;
+				var s = "https://google.com/maps/@" +
+						lat + "," + lng + ",18z";
+				// var t = "<a href='" + s  + "'>Location</a>";
+				console.log(s);
+				socket.send(s);
+			}
+			function showPositionError(e) {
+				alert("Unable to get your position");
+			}
+		</script>
+
+	</body>
+</html>
